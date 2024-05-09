@@ -1,0 +1,23 @@
+{
+  "images" : [
+    {
+      "filename" : "tidal-wave--nature-ocean-wave.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "tidal-wave--nature-ocean-wave2.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "tidal-wave--nature-ocean-wave3.png",
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
