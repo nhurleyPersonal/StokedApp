@@ -1,36 +1,48 @@
-//import Foundation
-//
-//struct LoginData: Codable {
-//    let username: String
-//    let password: String
-//}
-//
-//func login(username: String, password: String, completion: @escaping (Bool) -> Void) {
-//    guard let url = URL(string: "http://localhost:5000/login") else {
-//        print("Invalid URL")
-//        return
-//    }
-//
-//    let loginData = LoginData(username: username, password: password)
-//    guard let encodedLoginData = try? JSONEncoder().encode(loginData) else {
-//        print("Failed to encode login data")
-//        return
-//    }
-//
-//    var request = URLRequest(url: url)
-//    request.httpMethod = "POST"
-//    request.httpBody = encodedLoginData
-//    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-//
-//    URLSession.shared.dataTask(with: request) { data, response, error in
-//        if let data = data {
-//            if let decodedResponse = try? JSONDecoder().decode(LoginResponse.self, from: data) {
-//                DispatchQueue.main.async {
-//                    completion(decodedResponse.success)
-//                }
-//                return
-//            }
-//        }
-//        print("Login request failed: \(error?.localizedDescription ?? "Unknown error")")
-//    }.resume()
-//}
+import Foundation
+
+class UserAPI {
+    static let shared = UserAPI()
+
+    func login(username: String, password: String, completion: @escaping (Bool) -> Void) {
+        let url = URL(string: "http://localhost:3000/login")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body = ["username": username, "password": password]
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            if let data = data {
+                if let jwt = String(data: data, encoding: .utf8) {
+                    print("JWT: \(jwt)")
+                    completion(true)
+                } else {
+                    completion(false)
+                }
+            } else if let error = error {
+                print("Error: \(error)")
+                completion(false)
+            }
+        }.resume()
+    }
+
+    func register(email: String, firstName: String, lastName: String, password: String, completion: @escaping (Bool) -> Void) {
+        let url = URL(string: "https://your-backend-url.com/register")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body = ["email": email, "firstName": firstName, "lastName": lastName, "password": password]
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            if let data = data {
+                let str = String(data: data, encoding: .utf8)
+                print("Received data:\n\(str ?? "")")
+                completion(true)
+            } else if let error = error {
+                print("HTTP Request Failed \(error)")
+                completion(false)
+            }
+        }.resume()
+    }
+}

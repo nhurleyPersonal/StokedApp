@@ -19,7 +19,7 @@ struct HomeView: View {
     var body: some View {
         ZStack {
             Color(hex: "212121")
-                .edgesIgnoringSafeArea(.all)
+                .edgesIgnoringSafeArea(.top)
 
             ScrollView {
                 VStack(alignment: .leading) {
