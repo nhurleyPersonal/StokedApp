@@ -14,6 +14,6 @@ struct SessionDetailView: View {
     }
 }
 
-#Preview {
-    SessionDetailView(session: DummyData.generateDummySessions()[0])
-}
+//#Preview {
+//    SessionDetailView(session: DummyData.generateDummySessions()[0])
+//}

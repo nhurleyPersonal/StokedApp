@@ -83,6 +83,6 @@ struct DescriptionListView: View {
     }
 }
 
-#Preview {
-    DescriptionListView(description: DummyData.generateDummyTopSpot().descriptions, score: 8.8)
-}
+//#Preview {
+//    DescriptionListView(description: DummyData.generateDummyTopSpot().descriptions, score: 8.8)
+//}

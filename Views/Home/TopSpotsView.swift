@@ -12,11 +12,12 @@ struct TopSpotsView: View {
     @State private var selectedSession: Session?
 
     var topSpot: TopSpot
+    var topSpotSessions: [Session]
 
-    init(topSpot: TopSpot) {
-        self.topSpot = topSpot
-        _topDescriptions = State(initialValue: topSpot.descriptions.joined(separator: ", "))
-    }
+//    init(topSpot: TopSpot, ) {
+//        self.topSpot = topSpot
+//        _topDescriptions = State(initialValue: topSpot.descriptions.joined(separator: ", "))
+//    }
 
     var fontSize: CGFloat {
         switch topSpot.name.count {
@@ -98,48 +99,38 @@ struct TopSpotsView: View {
                 .padding(.vertical, 10)
                 HStack {
                     Spacer()
-                    
+
                     Spacer()
                 }
 
                 NavigationLink(destination: selectedSession.map { SessionView(session: $0) }, isActive: $isSessionViewPresented) {
                     EmptyView()
                 }
-
-                TopSpotSessionCard(session: DummyData.generateDummySessions()[0])
-                    .onTapGesture {
-                        selectedSession = DummyData.generateDummySessions()[0]
-                        isSessionViewPresented = true
+                if !topSpotSessions.isEmpty {
+                    NavigationLink(destination: SessionView(session: topSpotSessions[0])) {
+                        TopSpotSessionCard(session: topSpotSessions[0])
                     }
-                TopSpotSessionCard(session: DummyData.generateDummySessions()[1])
-                    .onTapGesture {
-                        selectedSession = DummyData.generateDummySessions()[1]
-                        isSessionViewPresented = true
+                    NavigationLink(destination: SessionView(session: topSpotSessions[0])) {
+                        TopSpotSessionCard(session: topSpotSessions[0])
                     }
-                TopSpotSessionCard(session: DummyData.generateDummySessions()[2])
-                    .onTapGesture {
-                        selectedSession = DummyData.generateDummySessions()[2]
-                        isSessionViewPresented = true
+                    NavigationLink(destination: SessionView(session: topSpotSessions[0])) {
+                        TopSpotSessionCard(session: topSpotSessions[0])
                     }
+                }
             }
 
             HStack {
                 Spacer()
-                
+
                 Spacer()
             }
             Spacer()
         }
-        .fullScreenCover(isPresented: $isSessionViewPresented) {
-            if let session = selectedSession {
-                SessionView(session: session)
-            }
-        }
     }
 }
 
-struct TopSpotsView_Preview: PreviewProvider {
-    static var previews: some View {
-        HomeView(sessions: DummyData.generateDummySessions(), topSpots: DummyData.generateDummyTopSpots())
-    }
-}
+// struct TopSpotsView_Preview: PreviewProvider {
+//    static var previews: some View {
+//        HomeView(sessions: DummyData.generateDummySessions(), topSpots: DummyData.generateDummyTopSpots())
+//    }
+// }

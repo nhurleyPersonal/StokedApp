@@ -10,6 +10,8 @@ import SwiftUI
 struct SetSessionScoreView: View {
     @State private var score: Double = 5
     @State private var dragOffset: CGFloat = 0
+    @Binding var sessionScore: Double
+
     var sliceDegrees: Double {
         360.0 * (1.0 - (score / 10.0))
     }
@@ -53,20 +55,18 @@ struct SetSessionScoreView: View {
         }
         .frame(width: 100, height: 100)
         .background(Color.clear)
-        .contentShape(Rectangle()) // Make the entire area tappable
-        .gesture(
+        .highPriorityGesture(
             DragGesture()
                 .onChanged { gesture in
-                    dragOffset = gesture.translation.height
-                    score = max(min(score - Double(dragOffset) / 800.0, 10), 0)
-                }
-                .onEnded { _ in
-                    dragOffset = 0
+                    let dragAmount = -gesture.translation.height / 200 // Adjust this value to change the sensitivity of the drag
+                    let newScore = score + Double(dragAmount)
+                    score = min(max(newScore, 0), 10) // Clamp the score between 0 and 10
+                    sessionScore = score
                 }
         )
     }
 }
 
-#Preview {
-    SetSessionScoreView()
-}
+// #Preview {
+//    SetSessionScoreView(sessionScore: <#T##Binding<Double>#>)
+// }

@@ -12,12 +12,36 @@ struct Session: Hashable, Identifiable, Codable {
     var spot: Spot
     var sessionDatetime: Date
     var sessionLength: Double
-    var board: Board
-    var surfData: SurfData
     var wordOne: String
     var wordTwo: String
     var wordThree: String
     var overallScore: Double
+    var waveCount: Int
+    var goodWaveCount: Int
+    var crowd: String
     var extraNotes: String
     var user: User
+    var surfData: [SurfData]
+
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case spot, sessionDatetime, sessionLength,
+             wordOne, wordTwo, wordThree, overallScore,
+             waveCount, goodWaveCount, crowd, extraNotes, user, surfData
+    }
+}
+
+struct PreAddSession: Codable {
+    let spot: String
+    let sessionDatetime: Date
+    let sessionLength: Double
+    let wordOne: String
+    let wordTwo: String
+    let wordThree: String
+    let overallScore: Double
+    let waveCount: Int
+    let goodWaveCount: Int
+    let crowd: String
+    let extraNotes: String
+    let user: User
 }

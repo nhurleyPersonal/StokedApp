@@ -19,10 +19,10 @@ struct SwellDirectionView: View {
                     .foregroundColor(.white)
 
                 Image(systemName: "arrow.up")
-                    .rotationEffect(.degrees(Double(surfData.swellDirection - 180)))
+                    .rotationEffect(.degrees(Double(surfData.primarySwellDirection - 180)))
                     .foregroundColor(.white)
             }
-            Text(String(format: "%.1f ft @ %.1f s\n%d°", surfData.swellHeight, surfData.swellPeriod, surfData.swellDirection))
+            Text(String(format: "%.1f ft @ %.1f s\n%.1f°", surfData.primarySwellHeight, surfData.primarySwellPeriod, surfData.primarySwellDirection))
                 .font(.system(size: 14))
                 .multilineTextAlignment(.center)
                 .foregroundColor(.white)
@@ -30,6 +30,6 @@ struct SwellDirectionView: View {
     }
 }
 
-#Preview {
-    SwellDirectionView(surfData: DummyData.generateDummyTopSpot().surfData)
-}
+// #Preview {
+//    SwellDirectionView(surfData: DummyData.generateDummyTopSpot().surfData)
+// }

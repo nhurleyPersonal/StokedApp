@@ -31,162 +31,151 @@ struct SessionView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                ZStack {
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Button(action: {
-                                presentationMode.wrappedValue.dismiss()
-                            }) {
-                                Image(systemName: "arrow.backward")
-                                    .foregroundColor(.white)
-                                    .padding()
-                            }
-                            Spacer()
-                        }
-                        HStack(alignment: .bottom) {
-                            Text(session.spot.name)
-                                .font(.system(size: 36))
-                                .foregroundColor(.white)
-                                .padding(.top)
-                                .padding(.bottom, 5)
-                            Spacer()
-                            Text(formatDate(session.sessionDatetime))
-                                .font(.system(size: 24))
-                                .foregroundColor(.white)
-                        }
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text("\(session.user.firstName) \(session.user.lastName.prefix(1)).")
-                                    .font(.system(size: 28))
-                                    .foregroundColor(.gray)
-
-                                if let tagline = session.user.tagline {
-                                    Text("\"\(tagline)\"")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(.gray)
-                                } else {
-                                    Text("")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                            Spacer()
-                            VStack(alignment: .leading) {
-                                HStack {
-                                    Text("525")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 24))
-                                    Image("EndorsedIcon")
-                                        .resizable()
-                                        .frame(width: 30, height: 30)
-                                }
-                            }
-                        }
-                        .padding(.bottom, 30)
-
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text("1. \(session.wordOne)")
-                                    .padding(.bottom, 17)
-                                    .padding(.leading, 15)
-                                Text("2. \(session.wordTwo)")
-                                    .padding(.bottom, 17)
-                                    .padding(.leading, 15)
-                                Text("3. \(session.wordThree)")
-                                    .padding(.bottom, 17)
-                                    .padding(.leading, 15)
-                            }
+                VStack(alignment: .leading) {
+                    HStack(alignment: .bottom) {
+                        Text(session.spot.name)
+                            .font(.system(size: 36))
                             .foregroundColor(.white)
+                            .padding(.top)
+                            .padding(.bottom, 5)
+                        Spacer()
+                        Text(formatDate(session.sessionDatetime))
                             .font(.system(size: 24))
-                            Spacer()
-                            TopSpotCircleScore(score: session.overallScore)
-                        }
-                        Rectangle()
-                            .frame(width: .infinity, height: 1)
-                            .foregroundColor(.gray)
-                        HStack(alignment: .top) {
-                            SwellDirectionView(surfData: session.surfData)
-                            Spacer()
-                            WindDirectionView(surfData: session.surfData)
-                            Spacer()
-                            VStack(alignment: .center) {
-                                TideSessionView()
-                            }
-                            .frame(width: 100, height: 100)
-                        }
-                        .padding(.top, 15)
-                        .padding(.horizontal, 10)
-                        .padding(.bottom, 20)
-                        VStack {
-                            DisclosureGroup("Surf Details", isExpanded: $surfDetailsIsExpanded) {
-                                VStack {
-                                    HStack(alignment: .top) {
-                                        VStack(alignment: .leading) {
-                                            Text("Wave Height:")
-                                                .foregroundColor(.gray)
-                                                .underline()
-                                            Text("Chest-Head")
-                                                .foregroundColor(.white)
-                                                .padding(.bottom, 10)
-                                            Text("Board:")
-                                                .foregroundColor(.gray)
-                                                .underline()
-                                            Text("Mayem Subdriver")
-                                                .foregroundColor(.white)
-                                        }
-                                        Spacer()
-                                        VStack(alignment: .leading) {
-                                            Text("Time between waves:")
-                                                .foregroundColor(.gray)
-                                                .underline()
-                                            Text("Long (15-20m)")
-                                                .padding(.bottom, 10)
-                                            Text("Crowd:")
-                                                .foregroundColor(.gray)
-                                                .underline()
-                                            Text("Light")
-                                        }
-                                    }
-                                    .padding(.horizontal, 10)
-                                    .padding(.top, 10)
-                                    .padding(.bottom, 10)
-                                    .foregroundColor(.white)
-                                    HStack {
-                                        VStack(alignment: .leading) {
-                                            Text("Notes")
-                                                .foregroundColor(.gray)
-                                                .underline()
-                                            Text("Lorem ipsum dolor sit amet. Quo quibusdam facilis id aliquid veniam ea quia ipsum eum officia rerum At eligendi rerum ut assumenda ipsam sit officia fugit. Et illo provident quo delectus deserunt quo sunt provident cum animi veniam eos mollitia")
-                                                .padding(.bottom, 10)
-                                                .foregroundColor(.white)
-                                        }
-                                        Spacer()
-                                    }
-                                    .padding(.leading, 10)
+                            .foregroundColor(.white)
+                    }
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("\(session.user.firstName) \(session.user.lastName.prefix(1)).")
+                                .font(.system(size: 28))
+                                .foregroundColor(.gray)
 
+                            if false {
+                                Text("")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.gray)
+                            } else {
+                                Text("")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        Spacer()
+                        VStack(alignment: .leading) {
+                            HStack {
+                                Text("525")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 24))
+                                Image("EndorsedIcon")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                            }
+                        }
+                    }
+                    .padding(.bottom, 30)
+
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("1. \(session.wordOne)")
+                                .padding(.bottom, 17)
+                                .padding(.leading, 15)
+                            Text("2. \(session.wordTwo)")
+                                .padding(.bottom, 17)
+                                .padding(.leading, 15)
+                            Text("3. \(session.wordThree)")
+                                .padding(.bottom, 17)
+                                .padding(.leading, 15)
+                        }
+                        .foregroundColor(.white)
+                        .font(.system(size: 24))
+                        Spacer()
+                        TopSpotCircleScore(score: session.overallScore)
+                    }
+                    Rectangle()
+                        .frame(width: .infinity, height: 1)
+                        .foregroundColor(.gray)
+                    HStack(alignment: .top) {
+                        SwellDirectionView(surfData: session.surfData[0])
+                        Spacer()
+                        WindDirectionView(surfData: session.surfData[0])
+                        Spacer()
+                        VStack(alignment: .center) {
+                            TideSessionView()
+                        }
+                        .frame(width: 100, height: 100)
+                    }
+                    .padding(.top, 15)
+                    .padding(.horizontal, 10)
+                    .padding(.bottom, 20)
+                    VStack {
+                        DisclosureGroup("Surf Details", isExpanded: $surfDetailsIsExpanded) {
+                            VStack {
+                                HStack(alignment: .top) {
+                                    VStack(alignment: .leading) {
+                                        Text("Wave Height:")
+                                            .foregroundColor(.gray)
+                                            .underline()
+                                        Text("Chest-Head")
+                                            .foregroundColor(.white)
+                                            .padding(.bottom, 10)
+                                        Text("Board:")
+                                            .foregroundColor(.gray)
+                                            .underline()
+                                        Text("Mayem Subdriver")
+                                            .foregroundColor(.white)
+                                    }
+                                    Spacer()
+                                    VStack(alignment: .leading) {
+                                        Text("Time between waves:")
+                                            .foregroundColor(.gray)
+                                            .underline()
+                                        Text("Long (15-20m)")
+                                            .padding(.bottom, 10)
+                                        Text("Crowd:")
+                                            .foregroundColor(.gray)
+                                            .underline()
+                                        Text("Light")
+                                    }
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.top, 10)
+                                .padding(.bottom, 10)
+                                .foregroundColor(.white)
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        Text("Notes")
+                                            .foregroundColor(.gray)
+                                            .underline()
+                                        Text("Lorem ipsum dolor sit amet. Quo quibusdam facilis id aliquid veniam ea quia ipsum eum officia rerum At eligendi rerum ut assumenda ipsam sit officia fugit. Et illo provident quo delectus deserunt quo sunt provident cum animi veniam eos mollitia")
+                                            .padding(.bottom, 10)
+                                            .foregroundColor(.white)
+                                    }
                                     Spacer()
                                 }
+                                .padding(.leading, 10)
+
+                                Spacer()
                             }
-                            .padding()
-                            .background(Color(hex: "1C1C1C"))
-                            .foregroundColor(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         }
-
-                        Spacer()
+                        .padding()
+                        .background(Color(hex: "1C1C1C"))
+                        .foregroundColor(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
-                    .padding()
+
+                    Spacer()
                 }
+                .padding()
             }
-            .background(Color(red: 23 / 255, green: 23 / 255, blue: 23 / 255))
-            .edgesIgnoringSafeArea(.all)
         }
+        .background(Color(red: 23 / 255, green: 23 / 255, blue: 23 / 255))
+        .edgesIgnoringSafeArea(.all)
+        .navigationBarTitle("Session Log Suck", displayMode: .inline)
     }
 }
 
-struct SessionView_Previews: PreviewProvider {
-    static var previews: some View {
-        SessionView(session: DummyData.generateDummySessions()[0])
-            .environment(\.theme, ThemeKey.defaultValue)
-    }
-}
+//struct SessionView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        SessionView(session: DummyData.generateDummySessions()[0])
+//            .environment(\.theme, ThemeKey.defaultValue)
+//    }
+//}

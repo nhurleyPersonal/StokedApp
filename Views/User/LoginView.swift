@@ -1,23 +1,24 @@
 import SwiftUI
 
 struct LoginView: View {
-    @State private var username = ""
+    var onLogin: () -> Void
+    let isLoggedIn: Bool
+
+    @State private var email = ""
     @State private var password = ""
     @State private var showingAlert = false
-    
-    var onLogin: () -> Void
 
     var body: some View {
-        ZStack{
+        ZStack {
             Color(hex: "212121")
-                .edgesIgnoringSafeArea(/*@START_MENU_TOKEN@*/.all/*@END_MENU_TOKEN@*/)
+                .edgesIgnoringSafeArea(/*@START_MENU_TOKEN@*/ .all/*@END_MENU_TOKEN@*/)
             VStack {
                 Text("Login")
                     .font(.largeTitle)
                     .fontWeight(.semibold)
                     .padding(.bottom, 20)
                     .foregroundColor(.white)
-                TextField("Username", text: $username)
+                TextField("Email", text: $email)
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(5.0)
@@ -28,8 +29,13 @@ struct LoginView: View {
                     .cornerRadius(5.0)
                     .padding(.bottom, 20)
                 Button(action: {
-                    // Implement login functionality here
-                    print("Login button tapped")
+                    UserAPI.shared.login(email: self.email, password: self.password) { success, message in
+                        if success {
+                            self.onLogin()
+                        } else {
+                            self.showingAlert = true
+                        }
+                    }
                 }) {
                     Text("Log In")
                         .font(.headline)
@@ -45,12 +51,11 @@ struct LoginView: View {
             }
             .padding()
         }
-        
     }
 }
 
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
-        LoginView(onLogin: {})
+        LoginView(onLogin: {}, isLoggedIn: true)
     }
 }

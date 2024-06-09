@@ -48,6 +48,6 @@ struct TopSpotSessionCard: View {
     }
 }
 
-#Preview {
-    TopSpotSessionCard(session: DummyData.generateDummySessions()[0])
-}
+//#Preview {
+//    TopSpotSessionCard(session: DummyData.generateDummySessions()[0])
+//}

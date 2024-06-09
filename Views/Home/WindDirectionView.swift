@@ -22,7 +22,7 @@ struct WindDirectionView: View {
                     .rotationEffect(.degrees(Double(surfData.windDirection - 180)))
                     .foregroundColor(.white)
             }
-            Text(String(format: "%.1f kts, %d°", surfData.windSpeed, surfData.windDirection))
+            Text(String(format: "%.1f kts, %.1f°", surfData.windSpeed, surfData.windDirection))
                 .multilineTextAlignment(.center)
                 .font(.system(size: 14))
                 .foregroundColor(.white)
@@ -30,6 +30,6 @@ struct WindDirectionView: View {
     }
 }
 
-#Preview {
-    WindDirectionView(surfData: DummyData.generateDummyTopSpot().surfData)
-}
+// #Preview {
+//    WindDirectionView(surfData: DummyData.generateDummyTopSpot().surfData)
+// }
