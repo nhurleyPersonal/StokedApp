@@ -36,42 +36,39 @@ struct SessionView: View {
                         Text(session.spot.name)
                             .font(.system(size: 36))
                             .foregroundColor(.white)
-                            .padding(.top)
-                            .padding(.bottom, 5)
                         Spacer()
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("\(session.user.firstName) \(session.user.lastName.prefix(1)).")
+                                    .font(.system(size: 28))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                    }
+                    .padding(.top, 10)
+
+                    HStack(alignment: .bottom) {
                         Text(formatDate(session.sessionDatetime))
                             .font(.system(size: 24))
                             .foregroundColor(.white)
-                    }
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("\(session.user.firstName) \(session.user.lastName.prefix(1)).")
-                                .font(.system(size: 28))
-                                .foregroundColor(.gray)
-
-                            if false {
-                                Text("")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.gray)
-                            } else {
-                                Text("")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.gray)
-                            }
-                        }
                         Spacer()
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Text("525")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 24))
-                                Image("EndorsedIcon")
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                            }
+                        HStack(alignment: .bottom) {
+                            Text("\(session.waveCount)")
+                                .foregroundColor(.white)
+                                .font(.system(size: 16))
+                            Image("EndorsedIcon")
+                                .resizable()
+                                .frame(width: 15, height: 15)
+                        }
+                        HStack(alignment: .bottom) {
+                            Text("\(session.goodWaveCount)")
+                                .foregroundColor(.white)
+                                .font(.system(size: 16))
+                            Image("EndorsedIcon.yellow")
+                                .resizable()
+                                .frame(width: 15, height: 15)
                         }
                     }
-                    .padding(.bottom, 30)
 
                     HStack {
                         VStack(alignment: .leading) {
@@ -167,15 +164,13 @@ struct SessionView: View {
                 .padding()
             }
         }
-        .background(Color(red: 23 / 255, green: 23 / 255, blue: 23 / 255))
-        .edgesIgnoringSafeArea(.all)
-        .navigationBarTitle("Session Log Suck", displayMode: .inline)
+        .navigationBarTitle("Session Log", displayMode: .inline)
     }
 }
 
-//struct SessionView_Previews: PreviewProvider {
+// struct SessionView_Previews: PreviewProvider {
 //    static var previews: some View {
 //        SessionView(session: DummyData.generateDummySessions()[0])
 //            .environment(\.theme, ThemeKey.defaultValue)
 //    }
-//}
+// }

@@ -71,7 +71,7 @@ struct ProfileView: View {
         let tagline = currentUser.user?.tagline ?? ""
         let sessionCount = currentUserSessions.count
         let lastSessionDate = currentUserSessions.first?.sessionDatetime ?? nil
-        let goodWaveCount = currentUserSessions.reduce(0) { $0 + $1.goodWaveCount }
+        let goodWaveCount = currentUserSessions.compactMap { $0.goodWaveCount }.reduce(0, +)
 
         ZStack {
             Color(hex: "212121")

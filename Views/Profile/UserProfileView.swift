@@ -58,8 +58,7 @@ struct UserProfileView: View {
         let tagline = user.tagline ?? ""
         let sessionCount = userSessions.count
         let lastSessionDate = userSessions.first?.sessionDatetime ?? nil
-        let goodWaveCount = userSessions.reduce(0) { $0 + $1.goodWaveCount }
-
+        let goodWaveCount = userSessions.compactMap { $0.goodWaveCount }.reduce(0, +)
         ZStack {
             Color(hex: "212121")
                 .edgesIgnoringSafeArea(.all)

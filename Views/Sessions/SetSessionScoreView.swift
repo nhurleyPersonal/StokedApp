@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SetSessionScoreView: View {
-    @State private var score: Double = 5
+    @State private var score: Double = 0
     @State private var dragOffset: CGFloat = 0
     @Binding var sessionScore: Double
 

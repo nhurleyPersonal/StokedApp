@@ -16,10 +16,13 @@ struct Session: Hashable, Identifiable, Codable {
     var wordTwo: String
     var wordThree: String
     var overallScore: Double
-    var waveCount: Int
-    var goodWaveCount: Int
-    var crowd: String
-    var extraNotes: String
+    var waveCount: Int?
+    var goodWaveCount: Int?
+    var crowd: String?
+    var lineup: String?
+    var waveHeight: String?
+    var timeBetweenWaves: String?
+    var extraNotes: String?
     var user: User
     var surfData: [SurfData]
 
@@ -27,7 +30,7 @@ struct Session: Hashable, Identifiable, Codable {
         case id = "_id"
         case spot, sessionDatetime, sessionLength,
              wordOne, wordTwo, wordThree, overallScore,
-             waveCount, goodWaveCount, crowd, extraNotes, user, surfData
+             waveCount, goodWaveCount, crowd, lineup, waveHeight, timeBetweenWaves, extraNotes, user, surfData
     }
 }
 
@@ -39,9 +42,12 @@ struct PreAddSession: Codable {
     let wordTwo: String
     let wordThree: String
     let overallScore: Double
-    let waveCount: Int
-    let goodWaveCount: Int
-    let crowd: String
-    let extraNotes: String
+    let waveCount: Int?
+    let goodWaveCount: Int?
+    let crowd: String?
+    let lineup: String?
+    let waveHeight: String?
+    let timeBeteenWaves: String?
+    let extraNotes: String?
     let user: User
 }

@@ -19,14 +19,19 @@ struct SessionSubmissionForm: View {
     @State private var sessionScore = Double()
     @State private var sessionWavecount: Int = 0
     @State private var sessionWavecountString: String = ""
+    @State private var sessionGoodWavecount: Int = 0
+    @State private var sessionGoodWavecountString: String = ""
 
     @State private var sessionCrowd = ""
     @State private var sessionBoard = ""
     @State private var sessionNotes = ""
 
     @State private var selectedTab = 0
-    @State private var selectedCrowdOption = "Light"
-    @State private var selectedBoardOption = "Shortboard"
+    @State private var selectedCrowdOption = "----"
+    @State private var selectedLineupOption = "----"
+    @State private var selectedBoardOption = "----"
+    @State private var selectedWaveHeightOption = "----"
+    @State private var selectedTimeBetweenWaves = "----"
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var allSpots: [Spot] = []
@@ -34,10 +39,12 @@ struct SessionSubmissionForm: View {
     @EnvironmentObject var currentUser: CurrentUser
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
 
-    let crowdOptions = ["Light", "Moderate", "Crowded", "Overcrowded"]
+    let crowdOptions = ["----", "Light", "Moderate", "Crowded", "Overcrowded"]
+    let apparentWaveHeightOptions = ["----", "Ankle Slappers", "Knee-Thigh", "Thigh-Waist", "Waist-Chest", "Chest-Head", "Head-Head+", "Double Overhead", "XXL"]
+    let timeBeteenWavesOptions = ["----", "<5 minutes", "5-10 minutes", "10-20 minutes", "20+ minutes"]
     let surfLengthOptions = ["30 minutes", "1 hour", "1.5 hours", "2 hours", "2.5 hours", "3+ hours"]
-    let crowdModifiers = ["Competitive", "Chill", "Local", "Aggro", "Longboard", "Shortboard"]
-    let boardChoices = ["Shortboard", "Longboard", "Foamie", "Fish", "Gun", "Funboard", "Hybrid", "Soft Top", "Other"]
+    let lineupOptions = ["----", "Competitive", "Chill", "Local", "Aggro"]
+    let boardChoices = ["----", "Shortboard", "Longboard", "Foamie", "Fish", "Gun", "Funboard", "Hybrid", "Soft Top", "Other"]
     let textboxColor = "373737"
 
     func createSession() {
@@ -49,6 +56,11 @@ struct SessionSubmissionForm: View {
             //     return
             // }
             SessionAPI.shared.currentUser = currentUser
+            let crowd = selectedCrowdOption == "----" ? nil : selectedCrowdOption
+            let board = selectedBoardOption == "----" ? nil : selectedBoardOption
+            let lineup = selectedLineupOption == "----" ? nil : selectedLineupOption
+            let waveHeight = selectedWaveHeightOption == "----" ? nil : selectedWaveHeightOption
+            let timeBetweenWaves = selectedTimeBetweenWaves == "----" ? nil : selectedTimeBetweenWaves
 
             let session = PreAddSession(
                 spot: sessionSpot?.id ?? "",
@@ -59,8 +71,11 @@ struct SessionSubmissionForm: View {
                 wordThree: sessionWordThree,
                 overallScore: sessionScore,
                 waveCount: sessionWavecount,
-                goodWaveCount: 0,
+                goodWaveCount: sessionGoodWavecount,
                 crowd: selectedCrowdOption,
+                lineup: lineup,
+                waveHeight: waveHeight,
+                timeBeteenWaves: timeBetweenWaves,
                 extraNotes: sessionNotes,
                 user: currentUser.user!
             )
@@ -92,10 +107,14 @@ struct SessionSubmissionForm: View {
                                             ForEach(0 ..< surfLengthOptions.count) { index in
                                                 Text(surfLengthOptions[index])
                                                     .foregroundColor(.white)
+                                                    .tag(index)
                                             }
                                         }
                                         .tabViewStyle(.page(indexDisplayMode: .never)) // <--- here
                                         .frame(width: 200, height: 50)
+                                        .onChange(of: selectedTab) { newValue in
+                                            sessionLength = 0.5 * Double(newValue + 1)
+                                        }
                                     )
                                     .padding(.bottom, 20)
                             }
@@ -172,11 +191,35 @@ struct SessionSubmissionForm: View {
                                     .frame(width: 100)
                                     .foregroundColor(.white)
                             }
-                            .padding(.bottom, 10)
+                            .padding(.trailing, 20)
+                            Spacer()
+                            VStack(alignment: .leading) {
+                                Text("Good Wave Count:")
+                                    .frame(width: 150, alignment: .leading)
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 16))
+                                    .lineLimit(1)
 
-                            VStack {
+                                TextField("", text: $sessionGoodWavecountString)
+                                    .onReceive(Just(sessionGoodWavecountString)) { newValue in
+                                        let filtered = newValue.filter { "0123456789".contains($0) }
+                                        if filtered != newValue {
+                                            sessionGoodWavecountString = filtered
+                                        }
+                                        sessionGoodWavecount = Int(sessionGoodWavecountString) ?? 0
+                                    }
+                                    .padding()
+                                    .background(Color(hex: textboxColor))
+                                    .border(Color.white, width: 0.5)
+                                    .frame(width: 100)
+                                    .foregroundColor(.white)
+                            }
+                            Spacer()
+                        }
+                        HStack {
+                            VStack(alignment: .leading) {
                                 Text("Crowd:")
-                                    .frame(width: 100, alignment: .leading)
+                                    .frame(width: 150, alignment: .leading)
                                     .foregroundColor(.white)
                                     .font(.system(size: 16))
 
@@ -186,32 +229,75 @@ struct SessionSubmissionForm: View {
                                     }
                                 }
                                 .frame(height: 55)
+                                .frame(minWidth: 100)
                                 .background(Color(hex: textboxColor))
                                 .border(Color.white, width: 0.5)
                                 .foregroundColor(.white)
                                 .accentColor(.white)
                             }
-                            .padding(.bottom, 10)
-
-                            VStack {
-                                Text("Board:")
-                                    .frame(width: 100, alignment: .leading)
+                            Spacer()
+                            VStack(alignment: .leading) {
+                                Text("Linuep:")
+                                    .frame(width: 150, alignment: .leading)
                                     .foregroundColor(.white)
                                     .font(.system(size: 16))
 
-                                Picker(selection: $selectedBoardOption, label: Text("")) {
-                                    ForEach(boardChoices, id: \.self) {
+                                Picker(selection: $selectedLineupOption, label: Text("")) {
+                                    ForEach(lineupOptions, id: \.self) {
                                         Text($0)
                                     }
                                 }
                                 .frame(height: 55)
+                                .frame(minWidth: 100)
                                 .background(Color(hex: textboxColor))
                                 .border(Color.white, width: 0.5)
                                 .foregroundColor(.white)
                                 .accentColor(.white)
                             }
-                            .padding(.bottom, 10)
+                            Spacer()
                         }
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("Approx. Wave Height:")
+                                    .frame(width: 150, alignment: .leading)
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 16))
+
+                                Picker(selection: $selectedWaveHeightOption, label: Text("")) {
+                                    ForEach(apparentWaveHeightOptions, id: \.self) {
+                                        Text($0)
+                                    }
+                                }
+                                .frame(height: 55)
+                                .frame(minWidth: 100)
+                                .background(Color(hex: textboxColor))
+                                .border(Color.white, width: 0.5)
+                                .foregroundColor(.white)
+                                .accentColor(.white)
+                            }
+                            Spacer()
+                            VStack(alignment: .leading) {
+                                Text("Lull Length:")
+                                    .frame(width: 150, alignment: .leading)
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 16))
+
+                                Picker(selection: $selectedTimeBetweenWaves, label: Text("")) {
+                                    ForEach(timeBeteenWavesOptions, id: \.self) {
+                                        Text($0)
+                                    }
+                                }
+                                .frame(height: 55)
+                                .frame(minWidth: 100)
+                                .background(Color(hex: textboxColor))
+                                .border(Color.white, width: 0.5)
+                                .foregroundColor(.white)
+                                .accentColor(.white)
+                            }
+                            Spacer()
+                        }
+                        .padding(.bottom, 10)
+
                         Text("Extra Notes:")
                             .frame(width: 100, alignment: .leading)
                             .foregroundColor(.white)
@@ -220,7 +306,7 @@ struct SessionSubmissionForm: View {
 
                         TextEditor(text: $sessionNotes)
                             .padding()
-                            .frame(height: 200)
+                            .frame(height: 100)
                             .scrollContentBackground(.hidden)
                             .background(Color(hex: textboxColor))
                             .border(Color.white, width: 0.5)
@@ -229,28 +315,6 @@ struct SessionSubmissionForm: View {
                         Spacer()
                     }
                     .padding()
-                    VStack {
-                        Spacer()
-                        Button(action: {
-                            let session = createSession()
-                            print("Session created: \(session)")
-                            currentUser.shouldRefresh = true
-                            self.presentationMode.wrappedValue.dismiss()
-
-                        }) {
-                            HStack {
-                                Image(systemName: "plus")
-                                    .foregroundColor(.white)
-                                Text("Submit Session")
-                                    .foregroundColor(.white)
-                            }
-                            .padding()
-                            .background(RoundedRectangle(cornerRadius: 20).fill(Color.green))
-                        }
-                        .alert(isPresented: $showingAlert) {
-                            Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
-                        }
-                    }
                 }
             }
             .onAppear {
@@ -263,6 +327,29 @@ struct SessionSubmissionForm: View {
                 }
             }
             .navigationBarTitle("Session Log", displayMode: .inline)
+            VStack {
+                Spacer()
+                Button(action: {
+                    let session = createSession()
+                    print("Session created: \(session)")
+                    currentUser.shouldRefresh = true
+                    self.presentationMode.wrappedValue.dismiss()
+
+                }) {
+                    HStack {
+                        Image(systemName: "plus")
+                            .foregroundColor(.white)
+                        Text("Submit Session")
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 20).fill(Color.green))
+                }
+                .alert(isPresented: $showingAlert) {
+                    Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+                }
+            }
+            .padding(.bottom, 20)
         }
     }
 }
