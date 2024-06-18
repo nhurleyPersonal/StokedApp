@@ -64,7 +64,7 @@ struct ProfileSessionView: View {
                             .aspectRatio(contentMode: .fit)
                             .padding(.leading, 10)
                             .padding(.top, 15)
-                        Text("\(session.waveCount)")
+                        Text(session.goodWaveCount != nil ? "\(session.waveCount!)" : "N/A")
                             .foregroundColor(.white)
                             .padding(.top, 15)
                     }
@@ -75,7 +75,7 @@ struct ProfileSessionView: View {
                             .aspectRatio(contentMode: .fit)
                             .padding(.leading, 10)
 
-                        Text("\(session.goodWaveCount)")
+                        Text(session.goodWaveCount != nil ? "\(session.goodWaveCount!)" : "N/A")
                             .foregroundColor(.white)
                     }
                 }
@@ -89,6 +89,6 @@ struct ProfileSessionView: View {
     }
 }
 
-//#Preview {
+// #Preview {
 //    ProfileSessionView(session: DummyData.generateDummySessions()[0])
-//}
+// }

@@ -22,6 +22,7 @@ struct WindDirectionView: View {
                     .rotationEffect(.degrees(Double(surfData.windDirection - 180)))
                     .foregroundColor(.white)
             }
+            .padding(.trailing, 10)
             Text(String(format: "%.1f kts, %.1f°", surfData.windSpeed, surfData.windDirection))
                 .multilineTextAlignment(.center)
                 .font(.system(size: 14))

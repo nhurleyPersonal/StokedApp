@@ -25,12 +25,13 @@ struct Session: Hashable, Identifiable, Codable {
     var extraNotes: String?
     var user: User
     var surfData: [SurfData]
+    var tideData: TideData
 
     enum CodingKeys: String, CodingKey {
         case id = "_id"
         case spot, sessionDatetime, sessionLength,
              wordOne, wordTwo, wordThree, overallScore,
-             waveCount, goodWaveCount, crowd, lineup, waveHeight, timeBetweenWaves, extraNotes, user, surfData
+             waveCount, goodWaveCount, crowd, lineup, waveHeight, timeBetweenWaves, extraNotes, user, surfData, tideData
     }
 }
 

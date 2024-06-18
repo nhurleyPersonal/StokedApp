@@ -22,10 +22,19 @@ struct SwellDirectionView: View {
                     .rotationEffect(.degrees(Double(surfData.primarySwellDirection - 180)))
                     .foregroundColor(.white)
             }
-            Text(String(format: "%.1f ft @ %.1f s\n%.1f°", surfData.primarySwellHeight, surfData.primarySwellPeriod, surfData.primarySwellDirection))
-                .font(.system(size: 14))
-                .multilineTextAlignment(.center)
-                .foregroundColor(.white)
+            .padding(.trailing, 10)
+            VStack {
+                Text(String(format: "%.1f ft @ %.1fs %.1f°", surfData.primarySwellHeight, surfData.primarySwellPeriod, surfData.primarySwellDirection))
+                    .font(.system(size: 14))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.green)
+                ForEach(surfData.swellComponents, id: \.self) { component in
+                    Text(String(format: "%.1f ft @ %.1fs %.1f°", component.wave_height, component.period, component.direction))
+                        .font(.system(size: 14))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.gray)
+                }
+            }
         }
     }
 }
