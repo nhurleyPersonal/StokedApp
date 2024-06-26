@@ -78,7 +78,6 @@ struct ContentView: View {
                 LoginOrRegisterView(onLogin: {
                     self.isLoggedIn = true
                     self.currentUser.shouldRefresh = true
-                    print("Logged in!", self.isLoggedIn)
                 }, isLoggedIn: isLoggedIn)
             }
         }

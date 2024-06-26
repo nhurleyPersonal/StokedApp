@@ -3,8 +3,8 @@ import SwiftUICharts
 
 struct TideSessionView: View {
     var tideData: TideData
-    var startDate: Date
-    var endDate: Date
+    var startDate: Date?
+    var endDate: Date?
     var tideTimes: [Date] {
         tideData.tideData.map { entry in
             let formatter = DateFormatter()
@@ -27,7 +27,7 @@ struct TideSessionView: View {
                 .touchOverlay(chartData: data, specifier: "%.1f", unit: .suffix(of: "ft"))
                 .xAxisGrid(chartData: data)
                 .xAxisLabels(chartData: data)
-                .headerBox(chartData: data)
+                .infoBox(chartData: data)
                 .id(data.id)
                 .frame(minWidth: 150, maxWidth: 900, minHeight: 150, idealHeight: 500, maxHeight: 600, alignment: .center)
                 .onAppear {
@@ -75,9 +75,8 @@ struct TideSessionView: View {
                                   lineColour: Color(.lightGray).opacity(0.50))
 
         return LineChartData(dataSets: dataSet,
-                             metadata: ChartMetadata(title: "Tides"),
                              xAxisLabels: xAxisLabels,
-                             chartStyle: LineChartStyle(infoBoxPlacement: .header,
+                             chartStyle: LineChartStyle(infoBoxPlacement: .infoBox(isStatic: false),
                                                         markerType: .full(attachment: .point),
                                                         xAxisGridStyle: gridStyle, xAxisLabelsFrom: .chartData(rotation: .degrees(0)),
                                                         globalAnimation: .default))

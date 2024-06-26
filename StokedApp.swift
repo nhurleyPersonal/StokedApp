@@ -35,7 +35,13 @@ struct StokedApp: App {
                     if let jwt = keychain.get("userJWT"), let user = UserAPI.shared.loadUser() {
                         isLoggedIn = true
                         currentUser.user = user
-                        print(currentUser.user, user)
+                        UserAPI.shared.getFavoriteSpots(user: user) { spots, error in
+                            if let spots = spots {
+                                currentUser.favoriteSpots = spots
+                            } else if let error = error {
+                                print("Error retrieving spots: \(error.localizedDescription)")
+                            }
+                        }
                     }
                 }
         }

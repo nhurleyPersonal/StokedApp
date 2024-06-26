@@ -23,14 +23,15 @@ struct SwellDirectionView: View {
                     .foregroundColor(.white)
             }
             .padding(.trailing, 10)
+            .padding(.bottom, 5)
             VStack {
                 Text(String(format: "%.1f ft @ %.1fs %.1f°", surfData.primarySwellHeight, surfData.primarySwellPeriod, surfData.primarySwellDirection))
-                    .font(.system(size: 14))
+                    .font(.system(size: 10))
                     .multilineTextAlignment(.center)
                     .foregroundColor(.green)
                 ForEach(surfData.swellComponents, id: \.self) { component in
                     Text(String(format: "%.1f ft @ %.1fs %.1f°", component.wave_height, component.period, component.direction))
-                        .font(.system(size: 14))
+                        .font(.system(size: 10))
                         .multilineTextAlignment(.center)
                         .foregroundColor(.gray)
                 }

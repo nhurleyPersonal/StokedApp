@@ -45,7 +45,7 @@ struct SessionView: View {
                         VStack(alignment: .leading) {
                             NavigationLink(destination: UserProfileView(user: session.user)) {
                                 Text("@\(session.user.username)")
-                                    .font(.system(size: 28))
+                                    .font(.system(size: 20))
                                     .foregroundColor(.gray)
                             }
                         }
@@ -94,55 +94,7 @@ struct SessionView: View {
                     Spacer()
                     TopSpotCircleScore(score: session.overallScore)
                 }
-                ZStack {
-                    Rectangle()
-                        .frame(height: 1)
-                        .foregroundColor(.white)
 
-                    Rectangle()
-                        .frame(width: 100, height: 10)
-                        .foregroundColor(Color(.black))
-                    Text("Surf Data")
-                        .font(.system(size: 12))
-                        .foregroundColor(.white)
-                }
-                .padding(.bottom, 10)
-                HStack(alignment: .top) {
-                    Spacer()
-                    VStack {
-                        Text("Swell")
-                            .foregroundColor(.white)
-                            .font(.system(size: 16))
-                            .underline()
-                            .padding(.bottom, 20)
-                            .padding(.leading, -10)
-
-                        SwellDirectionView(surfData: session.surfData[0])
-                    }
-                    Spacer()
-
-                    Divider()
-                        .background(Color.gray)
-                    Spacer()
-
-                    VStack {
-                        Text("Wind")
-                            .foregroundColor(.white)
-                            .underline()
-                            .font(.system(size: 16))
-                            .padding(.bottom, 20)
-
-                        WindDirectionView(surfData: session.surfData[0])
-                    }
-                    Spacer()
-                }
-                .padding(.bottom, 10)
-
-                TideSessionView(tideData: session.tideData, startDate: session.sessionDatetime, endDate: Date())
-                    .frame(height: 100)
-                    .padding(.top, 15)
-                    .padding(.horizontal, 10)
-                    .padding(.bottom, 20)
                 VStack {
                     DisclosureGroup("Extra Session Details", isExpanded: $surfDetailsIsExpanded) {
                         VStack {
@@ -198,6 +150,57 @@ struct SessionView: View {
                     .foregroundColor(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
+                .padding(.top, -25)
+
+                ZStack {
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundColor(.white)
+
+                    Rectangle()
+                        .frame(width: 100, height: 10)
+                        .foregroundColor(Color(.black))
+                    Text("Surf Data")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white)
+                }
+                .padding(.bottom, 10)
+                HStack(alignment: .top) {
+                    Spacer()
+                    VStack {
+                        Text("Swell")
+                            .foregroundColor(.white)
+                            .font(.system(size: 16))
+                            .underline()
+                            .padding(.bottom, 10)
+                            .padding(.leading, -10)
+
+                        SwellDirectionView(surfData: session.surfData[0])
+                    }
+                    Spacer()
+
+                    Divider()
+                        .background(Color.gray)
+                    Spacer()
+
+                    VStack {
+                        Text("Wind")
+                            .foregroundColor(.white)
+                            .underline()
+                            .font(.system(size: 16))
+                            .padding(.bottom, 10)
+
+                        WindDirectionView(surfData: session.surfData[0])
+                    }
+                    Spacer()
+                }
+                .padding(.bottom, 10)
+
+                TideSessionView(tideData: session.tideData, startDate: session.sessionDatetime, endDate: Date())
+                    .frame(height: 100)
+                    .padding(.top, 15)
+                    .padding(.horizontal, 10)
+                    .padding(.bottom, 20)
 
                 Spacer()
             }

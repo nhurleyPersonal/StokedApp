@@ -3,6 +3,8 @@ import Foundation
 import SwiftUI
 
 class SearchViewModel: ObservableObject {
+    @EnvironmentObject var currentUser: CurrentUser
+
     @Published var searchText = "" {
         didSet {
             runSearch(query: searchText)
@@ -68,7 +70,8 @@ class SearchViewModel: ObservableObject {
 }
 
 struct MainSearchView: View {
-    @ObservedObject private var viewModel = SearchViewModel()
+    @EnvironmentObject var currentUser: CurrentUser
+    @StateObject private var viewModel = SearchViewModel()
 
     func userSort(user1: User, user2: User, searchTerm: String) -> Bool {
         let fields1 = [user1.username, user1.lastName, user1.firstName]
