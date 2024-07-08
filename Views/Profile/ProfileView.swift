@@ -93,6 +93,17 @@ struct ProfileView: View {
                                 Text("@\(username)")
                                     .foregroundColor(.gray)
                                     .font(.system(size: 16))
+                                NavigationLink(destination: ProfileSettingsView()) {
+                                    Text("Edit Profile")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white)
+                                        .padding(.vertical, 3)
+                                        .padding(.horizontal, 5)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 25)
+                                                .stroke(Color.white, lineWidth: 1)
+                                        )
+                                }
                             }
 
                             Spacer()
@@ -137,48 +148,17 @@ struct ProfileView: View {
                     .padding(.top, 20)
 
                     ForEach(groupedSessions.keys.sorted(by: { $0.compare($1) == .orderedDescending }), id: \.self) { date in
-                        VStack(spacing: -10) {
-                            HStack {
-                                Text(formatDate(date))
-                                    .foregroundColor(.white)
-                                    .padding(.leading, 10)
-                                Rectangle()
-                                    .frame(height: 1)
-                                    .foregroundColor(.white)
-                                    .padding(.trailing, 20)
-                            }
+                        VStack {
                             ForEach(groupedSessions[date]!, id: \.self) { session in
                                 NavigationLink(destination: SessionView(session: session)) {
                                     ProfileSessionView(session: session)
+                                        .padding(.bottom, 10)
                                 }
                             }
                         }
                     }
                 }
             }
-            .navigationBarTitle("Profile", displayMode: .inline)
-            .navigationBarItems(trailing:
-                HStack {
-                    NavigationLink(destination: SessionSubmissionForm(), isActive: $showingSubmissionForm) {
-                        EmptyView()
-                    }
-                    Button(action: {
-                        showingSubmissionForm = true
-                    }) {
-                        Image(systemName: "text.badge.plus")
-                            .foregroundColor(.green)
-                    }
-
-                    Button(action: {
-                        // Add your logout logic here
-                        UserAPI.shared.logout()
-                        isLoggedIn = false
-                    }) {
-                        Text("Logout")
-                            .foregroundColor(.red)
-                    }
-                }
-            )
         }
         .onReceive(currentUser.$shouldRefresh) { _ in
             if currentUser.shouldRefresh {

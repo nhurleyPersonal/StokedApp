@@ -123,16 +123,7 @@ struct UserProfileView: View {
                     .padding(.top, 20)
 
                     ForEach(groupedSessions.keys.sorted(by: { $0.compare($1) == .orderedDescending }), id: \.self) { date in
-                        VStack(spacing: -10) {
-                            HStack {
-                                Text(formatDate(date))
-                                    .foregroundColor(.white)
-                                    .padding(.leading, 10)
-                                Rectangle()
-                                    .frame(height: 1)
-                                    .foregroundColor(.white)
-                                    .padding(.trailing, 20)
-                            }
+                        VStack {
                             ForEach(groupedSessions[date]!, id: \.self) { session in
                                 NavigationLink(destination: SessionView(session: session)) {
                                     ProfileSessionView(session: session)

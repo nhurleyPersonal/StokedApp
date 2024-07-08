@@ -13,6 +13,20 @@ class UserAPI {
         let user: User?
     }
 
+    struct MeServerResponse: Codable {
+        let user: User?
+    }
+
+    struct UpdateUserResponse: Codable {
+        let status: String
+        let message: String
+        let token: String?
+    }
+
+    struct UpdateBioResponse: Codable {
+        let message: String
+    }
+
     struct UserSearchServerResponse: Codable {
         let status: String
         let message: String
@@ -37,13 +51,60 @@ class UserAPI {
     }
 
     // Load user data
-    func loadUser() -> User? {
-        if let savedUser = UserDefaults.standard.object(forKey: "savedUser") as? Data {
-            if let loadedUser = try? JSONDecoder().decode(User.self, from: savedUser) {
-                return loadedUser
-            }
+    func loadUser(completion: @escaping (User?) -> Void) {
+        guard let jwt = keychain.get("userJWT") else {
+            completion(nil)
+            return
         }
-        return nil
+
+        let url = URL(string: "\(baseURL)/me")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET" // Changed to GET as it's typically used for retrieving data
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("HTTP Request Failed \(error)")
+                completion(nil)
+            } else if let httpResponse = response as? HTTPURLResponse {
+                print("HTTP Response Status Code: \(httpResponse.statusCode)") // Print the status code
+                if httpResponse.statusCode == 200 {
+                    if let data = data {
+                        do {
+                            let decoder = JSONDecoder()
+                            let dateFormatter = ISO8601DateFormatter()
+                            dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                            decoder.dateDecodingStrategy = .custom { decoder in
+                                let container = try decoder.singleValueContainer()
+                                let dateStr = try container.decode(String.self)
+
+                                if let date = dateFormatter.date(from: dateStr) {
+                                    return date
+                                }
+                                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date: \(dateStr)")
+                            }
+
+                            let decodedResponse = try decoder.decode(MeServerResponse.self, from: data)
+                            print("Server Response: \(decodedResponse)") // Print the decoded server response
+                            if let user = decodedResponse.user {
+                                completion(user)
+                            } else {
+                                completion(nil)
+                            }
+                        } catch {
+                            print("Failed to decode response: \(error)")
+                            completion(nil)
+                        }
+
+                    } else {
+                        completion(nil)
+                    }
+                } else {
+                    completion(nil)
+                }
+            }
+        }.resume()
     }
 
     func login(email: String, password: String, completion: @escaping (Bool, String?) -> Void) {
@@ -172,12 +233,17 @@ class UserAPI {
         task.resume()
     }
 
-    func addFavoriteSpot(user: User, spot: Spot, completion: @escaping (Bool) -> Void) {
+    func addFavoriteSpot(spot: Spot, completion: @escaping (Bool) -> Void) {
         let url = URL(string: "\(baseURL)/addFavoriteSpot")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body: [String: Any] = ["userId": user.id, "spotId": spot.id]
+
+        let keychain = KeychainSwift()
+        let jwt = keychain.get("userJWT") ?? ""
+        request.addValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+
+        let body: [String: Any] = ["spotId": spot.id]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -194,7 +260,7 @@ class UserAPI {
         }.resume()
     }
 
-    func getFavoriteSpots(user: User, completion: @escaping ([Spot]?, Error?) -> Void) {
+    func getFavoriteSpots(completion: @escaping ([Spot]?, Error?) -> Void) {
         let url = URL(string: "\(baseURL)/getFavoriteSpots")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -203,17 +269,6 @@ class UserAPI {
         let keychain = KeychainSwift()
         let jwt = keychain.get("userJWT") ?? ""
         request.addValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
-
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        do {
-            let jsonData = try encoder.encode(["userId": user.id])
-            request.httpBody = jsonData
-        } catch {
-            print("Error encoding user: \(error)")
-            completion(nil, error)
-            return
-        }
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
@@ -235,8 +290,7 @@ class UserAPI {
                 if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
                     print("Successfully pulled favorite spots")
                     completion(spots.favoriteSpots, nil)
-                }
-                else {
+                } else {
                     print("Could not get favorite Spots")
                 }
             } catch {
@@ -246,7 +300,7 @@ class UserAPI {
         }.resume()
     }
 
-    func removeFavoriteSpot(user: User, spot: Spot, completion: @escaping (Bool, String?) -> Void) {
+    func removeFavoriteSpot(spot: Spot, completion: @escaping (Bool, String?) -> Void) {
         let url = URL(string: "\(baseURL)/removeFavoriteSpot")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -256,7 +310,7 @@ class UserAPI {
         let jwt = keychain.get("userJWT") ?? ""
         request.addValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
 
-        let body: [String: Any] = ["userId": user.id, "spotId": spot.id]
+        let body: [String: Any] = ["spotId": spot.id]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -272,6 +326,11 @@ class UserAPI {
                 return
             }
 
+            // Print the response from the server
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("Server response: \(responseString)")
+            }
+
             if httpResponse.statusCode == 200 {
                 print("Spot successfully removed")
                 completion(true, nil)
@@ -284,6 +343,152 @@ class UserAPI {
                 } catch {
                     print("Failed to decode error response: \(error)")
                     completion(false, "Failed to decode error response: \(error.localizedDescription)")
+                }
+            }
+        }.resume()
+    }
+
+    func updateUserEmail(newEmail: String, completion: @escaping (Bool, String?) -> Void) {
+        let url = URL(string: "\(baseURL)/updateEmail")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let jwt = keychain.get("userJWT") ?? ""
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+
+        let body = ["newEmail": newEmail]
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(false, "HTTP Request Failed: \(error.localizedDescription)")
+            } else if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    if let data = data {
+                        do {
+                            let response = try JSONDecoder().decode(UpdateUserResponse.self, from: data)
+                            self.keychain.set(response.token ?? "no token", forKey: "userJWT")
+                            completion(true, nil)
+                        } catch {
+                            completion(false, "Failed to decode response: \(error.localizedDescription)")
+                        }
+                    } else {
+                        completion(false, "No data received")
+                    }
+                } else {
+                    completion(false, "HTTP Error: \(httpResponse.statusCode)")
+                }
+            }
+        }.resume()
+    }
+
+    func updateUserPassword(newPassword: String, completion: @escaping (Bool, String?) -> Void) {
+        let url = URL(string: "\(baseURL)/updatePassword")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let jwt = keychain.get("userJWT") ?? ""
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+
+        let body = ["newPassword": newPassword]
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(false, "HTTP Request Failed: \(error.localizedDescription)")
+            } else if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    if let data = data {
+                        do {
+                            let response = try JSONDecoder().decode(UpdateUserResponse.self, from: data)
+                            self.keychain.set(response.token ?? "no token", forKey: "userJWT")
+                            completion(true, nil)
+                        } catch {
+                            completion(false, "Failed to decode response: \(error.localizedDescription)")
+                        }
+                    } else {
+                        completion(false, "No data received")
+                    }
+                } else {
+                    completion(false, "HTTP Error: \(httpResponse.statusCode)")
+                }
+            }
+        }.resume()
+    }
+
+    func updateUserBio(newBio: String, completion: @escaping (Bool, String?) -> Void) {
+        let url = URL(string: "\(baseURL)/updateBio")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let jwt = keychain.get("userJWT") ?? ""
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+
+        let body = ["newBio": newBio]
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Server Response: \(error.localizedDescription)")
+                completion(false, "HTTP Request Failed: \(error.localizedDescription)")
+            } else if let httpResponse = response as? HTTPURLResponse {
+                print("Server Response: HTTP Status Code: \(httpResponse.statusCode)")
+                if httpResponse.statusCode == 200 {
+                    if let data = data {
+                        do {
+                            let response = try JSONDecoder().decode(UpdateBioResponse.self, from: data)
+                            print("Server Response1: \(response.message)")
+                            completion(true, nil)
+                        } catch {
+                            print("Server Response2: \(error.localizedDescription)")
+                            completion(false, "Failed to decode response: \(error.localizedDescription)")
+                        }
+                    } else {
+                        print("Server Response: No data received")
+                        completion(false, "No data received")
+                    }
+                } else {
+                    print("Server Response: HTTP Error: \(httpResponse.statusCode)")
+                    completion(false, "HTTP Error: \(httpResponse.statusCode)")
+                }
+            }
+        }.resume()
+    }
+
+    func updateUsername(newUsername: String, completion: @escaping (Bool, String?) -> Void) {
+        let url = URL(string: "\(baseURL)/updateUsername")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let jwt = keychain.get("userJWT") ?? ""
+        request.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+
+        let body = ["newUsername": newUsername]
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(false, "HTTP Request Failed: \(error.localizedDescription)")
+            } else if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    if let data = data {
+                        do {
+                            let response = try JSONDecoder().decode(UpdateUserResponse.self, from: data)
+                            completion(true, nil)
+                        } catch {
+                            completion(false, "Failed to decode response: \(error.localizedDescription)")
+                        }
+                    } else {
+                        completion(false, "No data received")
+                    }
+                } else if httpResponse.statusCode == 409 {
+                    completion(false, "Username is already taken")
+                } else {
+                    completion(false, "HTTP Error: \(httpResponse.statusCode)")
                 }
             }
         }.resume()

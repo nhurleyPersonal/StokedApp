@@ -78,10 +78,10 @@ struct TopSpotsView: View {
                 }
                 HStack(alignment: .top) {
                     Spacer()
-                    SwellDirectionView(surfData: topSpot.surfData)
-                        .padding(.horizontal, 10)
-                    WindDirectionView(surfData: topSpot.surfData)
-                        .padding(.horizontal, 10)
+                    // SwellDirectionView(surfData: topSpot.surfData, spot: topSpot)
+                    //     .padding(.horizontal, 10)
+                    // WindDirectionView(surfData: topSpot.surfData, spot: topSpot)
+                    //     .padding(.horizontal, 10)
 
                     VStack {
                         Text("Low Tide:")

@@ -3,7 +3,6 @@ import SwiftUI
 struct LoginOrRegisterView: View {
     @State private var username = ""
     @State private var password = ""
-    
 
     var onLogin: () -> Void
     let isLoggedIn: Bool
@@ -32,11 +31,5 @@ struct LoginOrRegisterView: View {
             .padding()
         }
         .colorScheme(.dark)
-    }
-}
-
-struct LoginOrRegisterView_Previews: PreviewProvider {
-    static var previews: some View {
-        LoginOrRegisterView(onLogin: {}, isLoggedIn: true)
     }
 }

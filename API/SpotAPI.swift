@@ -80,7 +80,6 @@ class SpotAPI {
             }
 
             do {
-                print(String(data: data, encoding: .utf8) ?? "Invalid data")
                 let response = try JSONDecoder().decode(SpotServerResponse.self, from: data)
                 if response.status == "ok" {
                     completion(response.spots, nil)

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SwellDirectionView: View {
     let surfData: SurfData
+    let spot: Spot
 
     var body: some View {
         VStack {
@@ -41,5 +42,5 @@ struct SwellDirectionView: View {
 }
 
 // #Preview {
-//    SwellDirectionView(surfData: DummyData.generateDummyTopSpot().surfData)
+//    SwellDirectionView(surfData: DummyData.generateDummyTopSpot().surfData, spot: DummyData.generateDummyTopSpot())
 // }

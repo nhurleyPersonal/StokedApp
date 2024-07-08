@@ -12,7 +12,7 @@ struct SpotView: View {
     @EnvironmentObject var currentUser: CurrentUser
     var spot: Spot
     @State private var selectedDate: Date = .init() // Default to today
-    @State private var selectedTime: Date = .init() // Added for time selection
+    @State private var selectedTime: Date = Calendar.current.date(bySettingHour: Calendar.current.component(.hour, from: Date()), minute: 0, second: 0, of: Date()) ?? Date() // Default to the current time but to the beginning of the hour
     let today = Date()
     @State private var isFavorite: Bool = false
 
@@ -32,6 +32,7 @@ struct SpotView: View {
     var closestForecast: SurfData? {
         let selectedDateTimeInterval = Calendar.current.startOfDay(for: selectedDate).addingTimeInterval(selectedTime.timeIntervalSince(Calendar.current.startOfDay(for: selectedTime))).timeIntervalSince1970
         let closest = forecasts.min(by: { abs($0.date - selectedDateTimeInterval) < abs($1.date - selectedDateTimeInterval) })
+        print(closest)
         return closest
     }
 
@@ -114,7 +115,7 @@ struct SpotView: View {
                                         .padding()
                                 } else {
                                     if let forecast = closestForecast {
-                                        SwellDirectionView(surfData: forecast)
+                                        SwellDirectionView(surfData: forecast, spot: spot)
                                     }
                                 }
                             }
@@ -139,7 +140,7 @@ struct SpotView: View {
                                         .padding()
                                 } else {
                                     if let forecast = closestForecast {
-                                        WindDirectionView(surfData: forecast)
+                                        WindDirectionView(surfData: forecast, spot: spot)
                                     }
                                 }
                             }
@@ -216,9 +217,32 @@ struct SpotView: View {
                     } else {
                         // Sessions Section
                         VStack {
-                            ForEach(sessions, id: \.self) { session in
-                                NavigationLink(destination: SessionView(session: session)) {
-                                    ProfileSessionView(session: session)
+                            if sessions.isEmpty {
+                                HStack {
+                                    Spacer()
+                                    VStack {
+                                        Text("No recent sessions")
+                                            .foregroundColor(.gray)
+                                            .font(.system(size: 20))
+                                        Text("Surfed here recently? Add a session.")
+                                            .foregroundColor(.gray)
+                                            .font(.system(size: 12))
+                                        NavigationLink(destination: SessionSubmissionForm(initialSpot: spot)) {
+                                            Image(systemName: "plus.circle")
+                                                .font(.system(size: 30))
+                                                .foregroundColor(.green)
+                                        }
+                                        .padding(.top, 5)
+                                    }
+
+                                    Spacer()
+                                }
+                            } else {
+                                ForEach(sessions.sorted(by: { $0.sessionDatetime > $1.sessionDatetime }), id: \.self) { session in
+                                    NavigationLink(destination: SessionView(session: session)) {
+                                        SpotListSessionView(session: session)
+                                            .padding(.bottom, 10)
+                                    }
                                 }
                             }
                         }
@@ -241,11 +265,18 @@ struct SpotView: View {
                 )
             }
             .transparentNavigationBar()
-            .navigationBarItems(trailing: Button(action: {
-                toggleFavorite()
-            }) {
-                Image(systemName: isFavorite ? "star.fill" : "star")
-                    .foregroundColor(isFavorite ? .yellow : .gray)
+            .navigationBarItems(trailing: HStack {
+                NavigationLink(destination: SessionSubmissionForm(initialSpot: spot)) {
+                    Image(systemName: "text.badge.plus")
+                        .foregroundColor(.white)
+                }
+                Button(action: {
+                    toggleFavorite()
+                }) {
+                    Image(systemName: isFavorite ? "star.fill" : "star")
+                        .foregroundColor(isFavorite ? .yellow : .gray)
+                }
+
             })
             .navigationBarBackButtonHidden(true) // Hide the default back button
             .navigationBarItems(leading: CustomBackButton()) // Use the custom back button
@@ -275,7 +306,7 @@ struct SpotView: View {
 
     private func fetchForecastsForSpot() {
         let currentDate = Calendar.current.startOfDay(for: Date())
-        let endDate = Calendar.current.date(byAdding: .day, value: 16, to: currentDate)!
+        let endDate = Calendar.current.date(byAdding: .day, value: 7, to: currentDate)!
         ForecastAPI.shared.getForecastsRange(spotId: spot.id, startDate: currentDate, endDate: endDate) { forecasts, error in
             DispatchQueue.main.async {
                 if let forecasts = forecasts {
@@ -307,7 +338,7 @@ struct SpotView: View {
     private func toggleFavorite() {
         isFavorite.toggle()
         if isFavorite {
-            UserAPI.shared.addFavoriteSpot(user: currentUser.user!, spot: spot) { success in
+            UserAPI.shared.addFavoriteSpot(spot: spot) { success in
                 if !success {
                     // Handle error: revert state if needed
                     isFavorite = false
@@ -315,7 +346,7 @@ struct SpotView: View {
             }
 
         } else {
-            UserAPI.shared.removeFavoriteSpot(user: currentUser.user!, spot: spot) { success, _ in
+            UserAPI.shared.removeFavoriteSpot(spot: spot) { success, _ in
                 if !success {
                     // Handle error: revert state if needed
                     isFavorite = true
@@ -330,7 +361,7 @@ struct SpotView: View {
             isFavorite = true
         } else {
             // If not found locally, fetch from the server
-            UserAPI.shared.getFavoriteSpots(user: currentUser.user!) { spots, error in
+            UserAPI.shared.getFavoriteSpots { spots, error in
                 DispatchQueue.main.async {
                     if let error = error {
                         print("Error fetching favorite spots: \(error.localizedDescription)")

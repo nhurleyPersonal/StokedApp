@@ -9,6 +9,7 @@ import SwiftUI
 
 struct WindDirectionView: View {
     let surfData: SurfData
+    let spot: Spot
 
     var body: some View {
         VStack {
@@ -23,7 +24,7 @@ struct WindDirectionView: View {
                     .foregroundColor(.white)
             }
             .padding(.trailing, 10)
-            Text(String(format: "%.1f kts, %.1f°", surfData.windSpeed, surfData.windDirection))
+            Text(String(format: "%.1f mph, %.1f°", surfData.windSpeed, surfData.windDirection))
                 .multilineTextAlignment(.center)
                 .font(.system(size: 14))
                 .foregroundColor(.white)

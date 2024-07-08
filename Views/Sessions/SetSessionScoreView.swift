@@ -8,62 +8,72 @@
 import SwiftUI
 
 struct SetSessionScoreView: View {
-    @State private var score: Double = 0
-    @State private var dragOffset: CGFloat = 0
     @Binding var sessionScore: Double
-
-    var sliceDegrees: Double {
-        360.0 * (1.0 - (score / 10.0))
-    }
-
-    var scoreColor: Color {
-        switch score {
-        case 0 ..< 3:
-            return .red
-        case 3 ..< 5:
-            return .orange
-        case 5 ..< 7:
-            return .yellow
-        case 7 ..< 9:
-            return .green
-        case 9 ..< 10:
-            return Color.green.opacity(0.7)
-        default:
-            return .purple
-        }
-    }
+    let scoreRange: ClosedRange<Double> = 0 ... 10
+    let step: Double = 0.1
+    let tickMarks: [Double] = [0, 2, 4, 6, 8, 10] // Specific points where ticks should be displayed
 
     var body: some View {
-        ZStack {
-            Circle()
-                .trim(from: 0.0, to: CGFloat(1.0 - sliceDegrees / 360.0)) // Cut out a slice
-                .stroke(scoreColor, lineWidth: 2)
-                .rotationEffect(.degrees(-90 + sliceDegrees)) // Rotate to start from top
-                .frame(width: 100, height: 100)
-
+        GeometryReader { geometry in
             VStack {
-                Image(systemName: "arrow.up")
-                    .foregroundColor(.white)
-                    .font(.system(size: 12))
-                Text(String(format: "%.1f", score))
-                    .font(.title)
-                    .foregroundColor(.white)
-                Image(systemName: "arrow.down")
-                    .foregroundColor(.white)
-                    .font(.system(size: 12))
-            }
-        }
-        .frame(width: 100, height: 100)
-        .background(Color.clear)
-        .highPriorityGesture(
-            DragGesture()
-                .onChanged { gesture in
-                    let dragAmount = -gesture.translation.height / 200 // Adjust this value to change the sensitivity of the drag
-                    let newScore = score + Double(dragAmount)
-                    score = min(max(newScore, 0), 10) // Clamp the score between 0 and 10
-                    sessionScore = score
+                // Draw the main horizontal line
+                Path { path in
+                    let width = geometry.size.width
+                    path.move(to: CGPoint(x: 0, y: 20))
+                    path.addLine(to: CGPoint(x: width, y: 20))
                 }
-        )
+                .stroke(Color.white, lineWidth: 2)
+
+                // Draw ticks at specified points
+                Path { path in
+                    let width = geometry.size.width
+                    for tick in tickMarks {
+                        let xPosition = CGFloat(tick / scoreRange.upperBound) * width
+                        path.move(to: CGPoint(x: xPosition, y: 10))
+                        path.addLine(to: CGPoint(x: xPosition, y: 0)) // Adjusted to draw upwards
+                    }
+                }
+                .stroke(Color.gray, lineWidth: 2)
+
+                // Draw a green tick for the selected score
+                Path { path in
+                    let width = geometry.size.width
+                    let position = (sessionScore - scoreRange.lowerBound) / (scoreRange.upperBound - scoreRange.lowerBound) * width
+                    path.move(to: CGPoint(x: position, y: 0))
+                    path.addLine(to: CGPoint(x: position, y: -15)) // Adjusted to draw upwards
+                }
+                .stroke(Color.green, lineWidth: 3)
+
+                // Labels for min and max values
+                HStack {
+                    Text("\(scoreRange.lowerBound, specifier: "%.1f")")
+                        .font(.caption)
+                        .frame(width: geometry.size.width / 2, alignment: .leading)
+                    Text("\(scoreRange.upperBound, specifier: "%.1f")")
+                        .font(.caption)
+                        .frame(width: geometry.size.width / 2, alignment: .trailing)
+                }
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        updateSelectedScore(from: value, in: geometry.size.width)
+                    }
+                    .onEnded { value in
+                        updateSelectedScore(from: value, in: geometry.size.width)
+                    }
+            )
+        }
+        .frame(width: 300, height: 40) // Set the frame to screen width
+        .padding(.horizontal, 20)
+    }
+
+    private func updateSelectedScore(from value: DragGesture.Value, in totalWidth: CGFloat) {
+        let tapLocation = value.location.x
+        let newScore = (tapLocation / totalWidth) * (scoreRange.upperBound - scoreRange.lowerBound) + scoreRange.lowerBound
+        // Clamp the score to the range to prevent it from going below 0 or above 10
+        sessionScore = min(max(round(newScore / step) * step, scoreRange.lowerBound), scoreRange.upperBound)
     }
 }
 

@@ -10,9 +10,8 @@ import SwiftUI
 
 @main
 struct StokedApp: App {
-    @StateObject private var currentUser = CurrentUser()
-    let keychain = KeychainSwift()
     @State private var isLoggedIn = false
+    @StateObject private var currentUser = CurrentUser()
 
     // Initialize the appearance of the navigation bar
     init() {
@@ -31,19 +30,6 @@ struct StokedApp: App {
         WindowGroup {
             ContentView(isLoggedIn: $isLoggedIn)
                 .environmentObject(currentUser)
-                .onAppear {
-                    if let jwt = keychain.get("userJWT"), let user = UserAPI.shared.loadUser() {
-                        isLoggedIn = true
-                        currentUser.user = user
-                        UserAPI.shared.getFavoriteSpots(user: user) { spots, error in
-                            if let spots = spots {
-                                currentUser.favoriteSpots = spots
-                            } else if let error = error {
-                                print("Error retrieving spots: \(error.localizedDescription)")
-                            }
-                        }
-                    }
-                }
         }
     }
 }

@@ -11,7 +11,7 @@ struct LoginView: View {
     var body: some View {
         ZStack {
             Color(hex: "212121")
-                .edgesIgnoringSafeArea(/*@START_MENU_TOKEN@*/ .all/*@END_MENU_TOKEN@*/)
+                .edgesIgnoringSafeArea(.all)
             VStack {
                 Text("Login")
                     .font(.largeTitle)
@@ -19,6 +19,7 @@ struct LoginView: View {
                     .padding(.bottom, 20)
                     .foregroundColor(.white)
                 TextField("Email", text: $email)
+                    .keyboardType(.emailAddress) // Set the keyboard type to email
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(5.0)
@@ -29,7 +30,7 @@ struct LoginView: View {
                     .cornerRadius(5.0)
                     .padding(.bottom, 20)
                 Button(action: {
-                    UserAPI.shared.login(email: self.email, password: self.password) { success, message in
+                    UserAPI.shared.login(email: self.email, password: self.password) { success, _ in
                         if success {
                             self.onLogin()
                         } else {
@@ -47,6 +48,13 @@ struct LoginView: View {
                 }
                 .alert(isPresented: $showingAlert) {
                     Alert(title: Text("Login Failed"), message: Text("Invalid username or password."), dismissButton: .default(Text("OK")))
+                }
+                // New Register Button
+                NavigationLink(destination: RegisterView(onLogin: onLogin)) {
+                    Text("Don't have an account yet? Register now")
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                        .padding(.top, 20)
                 }
             }
             .padding()

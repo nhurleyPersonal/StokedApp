@@ -2,10 +2,10 @@ import SwiftUI
 
 struct SessionSubmissionSpotSearch: View {
     @State private var searchText = ""
+
     @State private var isTextFieldActive = false
     var allSpots: [Spot] // This should be filled with your actual data
     @Binding var selectedSpot: Spot?
-
     let textboxColor = "373737"
 
     var filteredSpots: [Spot] {

@@ -72,32 +72,13 @@ class SearchViewModel: ObservableObject {
 struct MainSearchView: View {
     @EnvironmentObject var currentUser: CurrentUser
     @StateObject private var viewModel = SearchViewModel()
-
-    func userSort(user1: User, user2: User, searchTerm: String) -> Bool {
-        let fields1 = [user1.username, user1.lastName, user1.firstName]
-        let fields2 = [user2.username, user2.lastName, user2.firstName]
-
-        for (field1, field2) in zip(fields1, fields2) {
-            let range1 = field1.range(of: searchTerm)
-            let range2 = field2.range(of: searchTerm)
-
-            if let range1 = range1, let range2 = range2 {
-                return range1.lowerBound < range2.lowerBound
-            } else if range1 != nil {
-                return true
-            } else if range2 != nil {
-                return false
-            }
-        }
-
-        return false
-    }
+    @Environment(\.presentationMode) var presentationMode // Add this line
+    var showEscape: Bool?
 
     var body: some View {
         NavigationView {
             ZStack {
-                Color(hex: "212121")
-                    .edgesIgnoringSafeArea(.all)
+                Color(hex: "212121").edgesIgnoringSafeArea(.all)
 
                 VStack {
                     HStack {
@@ -119,10 +100,20 @@ struct MainSearchView: View {
                                     .foregroundColor(.white),
                                 alignment: .bottom
                             )
+
+                        if showEscape ?? false { // Assuming you always want to show the button
+                            Button(action: {
+                                self.presentationMode.wrappedValue.dismiss() // Dismiss the view
+                            }) {
+                                Image(systemName: "xmark")
+                                    .resizable()
+                                    .frame(width: 16, height: 16)
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.trailing, 10)
+                        }
                     }
                     .padding(.trailing, 10)
-                    .padding(.bottom, 10)
-
                     SearchResultsView(spots: viewModel.spots,
                                       users: viewModel.users.sorted(by: { userSort(user1: $0, user2: $1, searchTerm: viewModel.searchText) }))
 
@@ -131,5 +122,26 @@ struct MainSearchView: View {
                 .padding(.top, 20)
             }
         }
+        .navigationBarHidden(true) // Ensure the navigation bar is hidden
+    }
+
+    func userSort(user1: User, user2: User, searchTerm: String) -> Bool {
+        let fields1 = [user1.username, user1.lastName, user1.firstName]
+        let fields2 = [user2.username, user2.lastName, user2.firstName]
+
+        for (field1, field2) in zip(fields1, fields2) {
+            let range1 = field1.range(of: searchTerm)
+            let range2 = field2.range(of: searchTerm)
+
+            if let range1 = range1, let range2 = range2 {
+                return range1.lowerBound < range2.lowerBound
+            } else if range1 != nil {
+                return true
+            } else if range2 != nil {
+                return false
+            }
+        }
+
+        return false
     }
 }

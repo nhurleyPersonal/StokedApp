@@ -20,7 +20,7 @@ struct SearchResultsView: View {
                 Text("Users").tag(1)
             }
             .pickerStyle(SegmentedPickerStyle())
-            .padding()
+            .padding(.horizontal, 10)
 
             if selection == 1 {
                 ScrollView {

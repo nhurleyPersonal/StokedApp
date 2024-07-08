@@ -6,11 +6,12 @@
 //
 
 import Combine
+import Lottie
 import SwiftUI
 
 struct SessionSubmissionForm: View {
     @State private var sessionDatetime = Date()
-    @State private var sessionLength = Double()
+    @State private var sessionLength: Double?
     @State private var sessionSpot: Spot?
     @State private var sessionWordOne = ""
     @State private var sessionWordTwo = ""
@@ -36,25 +37,47 @@ struct SessionSubmissionForm: View {
     @State private var alertMessage = ""
     @State private var allSpots: [Spot] = []
 
+    @State private var showSuccessAnimation = false
+    @State private var showReturnedSession = false // Add this line
+
     @EnvironmentObject var currentUser: CurrentUser
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+
+    @FocusState private var isInputActive: Bool
+
+    @State private var selectedSession: Session? = nil
 
     let crowdOptions = ["----", "Light", "Moderate", "Crowded", "Overcrowded"]
     let apparentWaveHeightOptions = ["----", "Ankle Slappers", "Knee-Thigh", "Thigh-Waist", "Waist-Chest", "Chest-Head", "Head-Head+", "Double Overhead", "XXL"]
     let timeBeteenWavesOptions = ["----", "<5 minutes", "5-10 minutes", "10-20 minutes", "20+ minutes"]
-    let surfLengthOptions = ["30 minutes", "1 hour", "1.5 hours", "2 hours", "2.5 hours", "3+ hours"]
+    let surfLengthOptions: [(String, Double?)] = [
+        ("----", nil),
+        ("30 minutes", 0.5),
+        ("1 hour", 1.0),
+        ("1.5 hours", 1.5),
+        ("2 hours", 2.0),
+        ("2.5 hours", 2.5),
+        ("3+ hours", 3.0),
+    ]
     let lineupOptions = ["----", "Competitive", "Chill", "Local", "Aggro"]
     let boardChoices = ["----", "Shortboard", "Longboard", "Foamie", "Fish", "Gun", "Funboard", "Hybrid", "Soft Top", "Other"]
     let textboxColor = "373737"
 
+    // Add an initializer to accept an optional Spot
+    init(initialSpot: Spot? = nil) {
+        _sessionSpot = State(initialValue: initialSpot)
+    }
+
     func createSession() {
         if currentUser.user != nil {
-            // Check if required fields are filled
-            // if sessionDatetime == Date() || sessionLength == 0 || sessionWordOne.isEmpty || sessionWordTwo.isEmpty || sessionWordThree.isEmpty {
-            //     alertMessage = "Please fill in all required fields."
-            //     showingAlert = true
-            //     return
-            // }
+            // Check if sessionLength is non-nil and unwrap it
+            guard let unwrappedSessionLength = sessionLength else {
+                // Handle the case where sessionLength is nil, e.g., set a default value or show an error
+                alertMessage = "Please select a valid session length."
+                showingAlert = true
+                return
+            }
+
             SessionAPI.shared.currentUser = currentUser
             let crowd = selectedCrowdOption == "----" ? nil : selectedCrowdOption
             let board = selectedBoardOption == "----" ? nil : selectedBoardOption
@@ -65,7 +88,7 @@ struct SessionSubmissionForm: View {
             let session = PreAddSession(
                 spot: sessionSpot?.id ?? "",
                 sessionDatetime: sessionDatetime,
-                sessionLength: sessionLength,
+                sessionLength: unwrappedSessionLength, // Use the unwrapped session length
                 wordOne: sessionWordOne,
                 wordTwo: sessionWordTwo,
                 wordThree: sessionWordThree,
@@ -79,7 +102,23 @@ struct SessionSubmissionForm: View {
                 extraNotes: sessionNotes,
                 user: currentUser.user!
             )
-            SessionAPI.shared.addSession(session: session)
+            SessionAPI.shared.addSession(session: session) { success, createdSession in
+                if success, let createdSession = createdSession {
+                    withAnimation {
+                        showSuccessAnimation = true
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        withAnimation {
+                            showSuccessAnimation = false
+                        }
+                        self.selectedSession = createdSession // Set the selected session to navigate
+                        self.showReturnedSession = true // Set showReturnedSession to true
+                    }
+                } else {
+                    alertMessage = "Failed to add session. Please try again."
+                    showingAlert = true
+                }
+            }
         }
     }
 
@@ -87,39 +126,41 @@ struct SessionSubmissionForm: View {
         ZStack {
             Color(hex: "212121")
                 .edgesIgnoringSafeArea(.all)
+                .onTapGesture {
+                    isInputActive = false // This will dismiss the keyboard
+                }
             ScrollView {
                 ZStack {
                     VStack(alignment: .leading) {
-                        HStack {
-                            VStack {
-                                DatePicker("Session Date", selection: $sessionDatetime, displayedComponents: [.date, .hourAndMinute])
-                                    .labelsHidden()
-                                    .foregroundColor(.white)
-                                    .colorScheme(.dark)
-                                    .padding(.top, 10)
+                        VStack {
+                            HStack {
+                                VStack {
+                                    DatePicker("Session Date", selection: $sessionDatetime, displayedComponents: [.date, .hourAndMinute])
+                                        .labelsHidden()
+                                        .foregroundColor(.white)
+                                        .colorScheme(.dark)
 
-                                Rectangle()
-                                    .fill(Color.clear)
-                                    .stroke(Color.gray, lineWidth: 1)
-                                    .frame(width: 200, height: 50)
-                                    .overlay(
-                                        TabView(selection: $selectedTab) {
-                                            ForEach(0 ..< surfLengthOptions.count) { index in
-                                                Text(surfLengthOptions[index])
-                                                    .foregroundColor(.white)
-                                                    .tag(index)
-                                            }
+                                    Picker("Select Session Length", selection: $sessionLength) {
+                                        ForEach(surfLengthOptions, id: \.0) { option in
+                                            Text(option.0).tag(option.1 as Double?) // Ensure the tag is explicitly cast to Double?
                                         }
-                                        .tabViewStyle(.page(indexDisplayMode: .never)) // <--- here
-                                        .frame(width: 200, height: 50)
-                                        .onChange(of: selectedTab) { newValue in
-                                            sessionLength = 0.5 * Double(newValue + 1)
-                                        }
-                                    )
+                                    }
+                                    .pickerStyle(WheelPickerStyle())
+                                    .frame(width: 200, height: 100)
+                                    .clipped()
                                     .padding(.bottom, 20)
+                                    .padding(.top, -10)
+                                }
+                                Spacer()
+                                VStack {
+                                    TopSpotCircleScore(score: sessionScore)
+                                        .padding(.top, 10)
+                                    Spacer()
+                                }
                             }
-                            Spacer()
+
                             SetSessionScoreView(sessionScore: $sessionScore)
+                                .padding(.top, -10)
                         }
 
                         HStack(alignment: .top) {
@@ -129,6 +170,7 @@ struct SessionSubmissionForm: View {
                                 .padding(.trailing, 10)
                                 .padding(.top, 20)
 
+                            // Use the initial spot if provided
                             SessionSubmissionSpotSearch(allSpots: allSpots, selectedSpot: $sessionSpot)
                                 .padding(.trailing, 10)
                         }
@@ -139,17 +181,23 @@ struct SessionSubmissionForm: View {
 
                         HStack {
                             TextField("One", text: $sessionWordOne)
+                                .focused($isInputActive)
                                 .padding()
+                                .contentShape(Rectangle()) // Makes the entire area clickable
                                 .background(Color(hex: textboxColor))
                                 .border(Color.white, width: 0.5)
                                 .foregroundColor(.white)
                             TextField("Two", text: $sessionWordTwo)
+                                .focused($isInputActive)
                                 .padding()
+                                .contentShape(Rectangle()) // Makes the entire area clickable
                                 .background(Color(hex: textboxColor))
                                 .border(Color.white, width: 0.5)
                                 .foregroundColor(.white)
                             TextField("Three", text: $sessionWordThree)
+                                .focused($isInputActive)
                                 .padding()
+                                .contentShape(Rectangle()) // Makes the entire area clickable
                                 .background(Color(hex: textboxColor))
                                 .border(Color.white, width: 0.5)
                                 .foregroundColor(.white)
@@ -174,10 +222,12 @@ struct SessionSubmissionForm: View {
                             VStack {
                                 Text("Wave Count:")
                                     .frame(width: 100, alignment: .leading)
+                                    .contentShape(Rectangle())
                                     .foregroundColor(.white)
                                     .font(.system(size: 16))
 
                                 TextField("", text: $sessionWavecountString)
+                                    .focused($isInputActive)
                                     .onReceive(Just(sessionWavecountString)) { newValue in
                                         let filtered = newValue.filter { "0123456789".contains($0) }
                                         if filtered != newValue {
@@ -201,6 +251,7 @@ struct SessionSubmissionForm: View {
                                     .lineLimit(1)
 
                                 TextField("", text: $sessionGoodWavecountString)
+                                    .focused($isInputActive)
                                     .onReceive(Just(sessionGoodWavecountString)) { newValue in
                                         let filtered = newValue.filter { "0123456789".contains($0) }
                                         if filtered != newValue {
@@ -305,6 +356,7 @@ struct SessionSubmissionForm: View {
                             .padding(.trailing, 10)
 
                         TextEditor(text: $sessionNotes)
+                            .focused($isInputActive)
                             .padding()
                             .frame(height: 100)
                             .scrollContentBackground(.hidden)
@@ -317,6 +369,11 @@ struct SessionSubmissionForm: View {
                     .padding()
                 }
             }
+            .gesture(
+                DragGesture().onChanged { _ in
+                    isInputActive = false // Dismiss the keyboard when starting to drag
+                }
+            )
             .onAppear {
                 SessionAPI.shared.getAllSpots { spots, error in
                     if let spots = spots {
@@ -351,6 +408,25 @@ struct SessionSubmissionForm: View {
             }
             .padding(.bottom, 20)
         }
+        .overlay(
+            Group {
+                if showSuccessAnimation {
+                    LottieView(animation: .named("checkmark-animation"))
+                        .playing()
+                }
+            }
+        )
+        .background(
+            Group {
+                if let session = selectedSession {
+                    NavigationLink(
+                        destination: SessionView(session: session),
+                        isActive: $showReturnedSession, // Use showReturnedSession to trigger navigation
+                        label: { EmptyView() }
+                    )
+                }
+            }
+        )
     }
 }
 

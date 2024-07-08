@@ -21,7 +21,13 @@ class SessionAPI {
         let spots: [Spot]?
     }
 
-    func addSession(session: PreAddSession) {
+    struct AddSessionResponse: Codable {
+        let status: String
+        let message: String
+        let session: Session?
+    }
+
+    func addSession(session: PreAddSession, completion: @escaping (Bool, Session?) -> Void) {
         let url = URL(string: "\(baseURL)/addSession")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -38,32 +44,39 @@ class SessionAPI {
             request.httpBody = jsonData
         } catch {
             print("Error encoding session: \(error)")
+            completion(false, nil)
             return
         }
 
         let task = URLSession.shared.dataTask(with: request) { data, _, error in
             if let error = error {
                 print("Error sending request: \(error)")
+                completion(false, nil)
                 return
             }
 
             guard let data = data else {
                 print("No data returned")
+                completion(false, nil)
                 return
             }
+            print("Server Response: \(String(data: data, encoding: .utf8) ?? "Invalid response data")")
 
             do {
-                let response = try JSONDecoder().decode(ServerResponse.self, from: data)
-                if response.status == "ok" {
+                let response = try JSONDecoder().decode(AddSessionResponse.self, from: data)
+                if response.status == "ok", let session = response.session {
                     print("Session added successfully")
                     DispatchQueue.main.async {
                         self.currentUser?.shouldRefresh = true
                     }
+                    completion(true, session)
                 } else {
                     print("Error: \(response.message)")
+                    completion(false, nil)
                 }
             } catch {
                 print("Error decoding response: \(error)")
+                completion(false, nil)
             }
         }
 
@@ -177,7 +190,6 @@ class SessionAPI {
                 let response = try decoder.decode(ServerResponse.self, from: data)
                 if response.status == "ok" {
                     print("Sessions retrieved successfully")
-
                     completion(response.sessions, nil)
                 } else {
                     print("Error: \(response.message)")

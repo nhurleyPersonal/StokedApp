@@ -15,6 +15,7 @@ struct HomeView: View {
     @Binding var isLoggedIn: Bool
     var currentUser: CurrentUser
     @State private var topSpotSessions: [Session] = []
+    @State private var selectedTab: Int = 0 // New state for managing selected tab
 
     static let dummySwellComponent = SwellComponent(period: 13.97, direction: 208.63, wave_height: 1.7056)
 
@@ -61,78 +62,90 @@ struct HomeView: View {
     var body: some View {
         ZStack {
             Color(hex: "212121")
+                .edgesIgnoringSafeArea(.all)
 
-            ScrollView {
-                VStack(alignment: .leading) {
-                    ZStack {
-                        Rectangle()
-                            .stroke(Color.white, lineWidth: 2)
-                            .frame(width: UIScreen.main.bounds.width * 0.95, height: UIScreen.main.bounds.height * 0.65)
-                            .edgesIgnoringSafeArea(.all)
-                            .zIndex(1)
-
-                        GeometryReader { geometry in
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 0) {
-                                    ForEach(0 ..< 3) { index in
-                                        TopSpotsView(topSpot: self.dummyTopSpot, topSpotSessions: self.topSpotSessions)
-                                            .frame(width: geometry.size.width)
-                                            .tag(index)
-                                    }
-                                }
-                            }
-                            .content.offset(x: -CGFloat(self.currentPage) * geometry.size.width)
-                            .frame(width: geometry.size.width, alignment: .leading)
-                            .gesture(
-                                DragGesture().onEnded { value in
-                                    if value.predictedEndTranslation.width > geometry.size.width / 2, self.currentPage > 0 {
-                                        withAnimation {
-                                            self.currentPage -= 1
-                                        }
-                                    } else if value.predictedEndTranslation.width < -geometry.size.width / 2, self.currentPage < 2 {
-                                        withAnimation {
-                                            self.currentPage += 1
-                                        }
-                                    }
-                                }
-                            )
-                            .mask(
-                                Rectangle()
-                                    .frame(width: UIScreen.main.bounds.width * 0.95, height: UIScreen.main.bounds.height * 0.65)
-                            )
-                        }
-                        .zIndex(0)
-
-                        Text("Top Spots Today")
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 3)
-                            .background(Color(hex: "212121"))
-                            .offset(x: -UIScreen.main.bounds.width * 0.325, y: -UIScreen.main.bounds.height * 0.325)
-                            .zIndex(1)
-                    }
-
+            VStack(spacing: 0) {
+                // Header section
+                VStack {
                     HStack {
-                        ForEach(0 ..< 3) { index in
-                            Circle()
-                                .fill(index == currentPage ? Color.blue : Color.gray)
-                                .frame(width: 10, height: 10)
-                                .padding(2)
+                        Image("BannerLogo")
+                            .padding(.leading, 30)
+
+                        Spacer()
+
+                        NavigationLink(destination: MainSearchView(showEscape: true).navigationBarHidden(true), isActive: $isMainSearchViewPresented) {
+                            Button(action: {
+                                isMainSearchViewPresented = true
+                            }) {
+                                Image(systemName: "magnifyingglass.circle")
+                                    .resizable()
+                                    .frame(width: 27, height: 27)
+                                    .foregroundColor(.white)
+                            }
                         }
+                        .padding(.trailing, 15)
                     }
+                    .padding(.top, 15)
 
                     Divider()
+                        .frame(height: 1)
+                        .padding(.vertical, 5)
 
-                    Text("Buddies' sessions")
-                        .font(.title2)
-                        .padding(.vertical)
+                    HStack(spacing: 20) {
+                        Button(action: {
+                            selectedTab = 0
+                        }) {
+                            HStack {
+                                Image(systemName: "star.fill")
+                                    .resizable()
+                                    .frame(width: 16, height: 16)
+                                Text("Spots")
+                                    .font(.system(size: 12))
+                            }
+                        }
+                        .buttonStyle(TabButtonStyle(isSelected: selectedTab == 0))
 
-                    // ForEach(sessions.prefix(3).indices, id: \.self) { index in
-                    //     SessionView(session: sessions[index])
-                    // }
+                        Button(action: {
+                            selectedTab = 1
+                        }) {
+                            HStack {
+                                Text("Buddies")
+                                    .font(.system(size: 12))
+                            }
+                        }
+                        .buttonStyle(TabButtonStyle(isSelected: selectedTab == 1))
+
+                        Button {
+                            selectedTab = 2
+                        } label: {
+                            Image(systemName: "waveform")
+                                .resizable()
+                                .frame(width: 16, height: 16)
+                        }
+                        .buttonStyle(TabButtonStyle(isSelected: selectedTab == 2))
+                        Spacer()
+                    }
+                    .frame(height: 40)
+                    .padding(.horizontal, 10)
+                    .padding(.top, -10)
+                    .padding(.bottom, 10)
                 }
-                .padding()
+                .background(Color(hex: "212121")) // Ensure the header has a background that matches the ZStack
+
+                // Content section
+                ScrollView {
+                    Group {
+                        if selectedTab == 0 {
+                            FavoriteSpotsFeedView() // Temporary view for selectedTab = 0
+                        } else if selectedTab == 1 {
+                            Spacer() // Temporary view for selectedTab = 1
+                        } else if selectedTab == 2 {
+                            TopSpotsContainerView(currentPage: $currentPage, topSpotSessions: topSpotSessions, dummyTopSpot: dummyTopSpot)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity) // This ensures the content area fills the available space
+                }
             }
-            .navigationBarTitle("STOKED", displayMode: .inline)
         }
         .onReceive(currentUser.$shouldRefreshHome) { _ in
             if currentUser.shouldRefreshHome {
@@ -143,6 +156,24 @@ struct HomeView: View {
             currentUser.shouldRefreshHome = true
             fetchSessions()
         }
+    }
+}
+
+struct TabButtonStyle: ButtonStyle {
+    var isSelected: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.horizontal, 15)
+            .padding(.vertical, 5)
+            .frame(minWidth: 50)
+            .background(isSelected ? Color.white : Color.clear)
+            .foregroundColor(isSelected ? .black : .white) // Apply foreground color to the entire button content
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.white, lineWidth: 1) // Adds a white border
+            )
     }
 }
 

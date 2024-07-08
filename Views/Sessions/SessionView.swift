@@ -16,7 +16,9 @@ struct SessionView: View {
         let sixDaysAgo = calendar.date(byAdding: .day, value: -6, to: now)!
 
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "h:mm"
+        dateFormatter.dateFormat = "h:mma"
+        dateFormatter.amSymbol = "am"
+        dateFormatter.pmSymbol = "pm"
 
         if calendar.isDateInToday(date) {
             return "Today @ \(dateFormatter.string(from: date))"
@@ -28,7 +30,9 @@ struct SessionView: View {
             return "\(dayFormatter.string(from: date)) @ \(dateFormatter.string(from: date))"
         } else {
             let dateAndDayFormatter = DateFormatter()
-            dateAndDayFormatter.dateFormat = "MMMM d @ h:mm"
+            dateAndDayFormatter.dateFormat = "MMMM d @ h:mma"
+            dateAndDayFormatter.amSymbol = "am"
+            dateAndDayFormatter.pmSymbol = "pm"
             return dateAndDayFormatter.string(from: date)
         }
     }
@@ -175,7 +179,7 @@ struct SessionView: View {
                             .padding(.bottom, 10)
                             .padding(.leading, -10)
 
-                        SwellDirectionView(surfData: session.surfData[0])
+                        SwellDirectionView(surfData: session.surfData[0], spot: session.spot)
                     }
                     Spacer()
 
@@ -190,7 +194,7 @@ struct SessionView: View {
                             .font(.system(size: 16))
                             .padding(.bottom, 10)
 
-                        WindDirectionView(surfData: session.surfData[0])
+                        WindDirectionView(surfData: session.surfData[0], spot: session.spot)
                     }
                     Spacer()
                 }
